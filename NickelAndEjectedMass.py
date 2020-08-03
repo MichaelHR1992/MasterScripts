@@ -43,8 +43,8 @@ def ejected_mass(CS_opacity, q, v_efolding, t_0):
     return ejected_mass/sun_mass
 
 # set parameters
-t_rise = 19.3 # time from first light to bol max
-x_lim = [60, 120] # late phase range that must be fitted
+t_rise = 19.1 # time from first light to bol max
+x_lim = [60, 120] # late phase range that must be fitted (days relative to bol max)
 CS_opacity = 0.025 # compton scattering opacity
 q = 1/3 # distribution of Fe-peak elements
 v_ef = 3000 # e-folding velocity
@@ -83,12 +83,11 @@ for i in range(500):
     popt, pcov = curve_fit(energy_deposition2, late_lum_data[:, 0] + t_rise, late_lum_data[:, 1] + np.random.normal(0, late_lum_data[:, 2]), p0=[10], bounds=([1], [50]))
     fid_times[i] = popt[0]
 
+# finding ejected mass and error via MC simulation
 fid_time = np.mean(fid_times)
 fid_time_err = np.std(fid_times)
-
 M_ej = np.array([ejected_mass(CS_opacity * 1000 / 100000 ** 2, q, v_ef, fid_time * 24 * 60 * 60),
                  (ejected_mass(CS_opacity * 1000 / 100000 ** 2, q, v_ef, (fid_time + fid_time_err) * 24 * 60 * 60)- ejected_mass(CS_opacity * 1000 / 100000 ** 2, q, v_ef, (fid_time - fid_time_err) * 24 * 60 * 60))/2])
-
 
 
 # printing values
@@ -98,6 +97,8 @@ print('Fiducial time from fit: {} \u00B1 {}'.format(fid_time, fid_time_err))
 print('Total ejected mass: {} \u00B1 {}'.format(M_ej[0], M_ej[1]))
 print('Nickel mass from Dhawan relation: {}'.format(Ni_mass(1.3*10**43, 19.10*24*60*60, 1.2)))
 
+
+# plotting data and fit
 fig = plt.figure(figsize=(10, 6))
 plt.plot(lum_data[:, 0], np.log10(lum_data[:, 1]))
 plt.fill_between(lum_data[:, 0], np.log10(lum_data[:, 1] - lum_data[:, 2]), np.log10(lum_data[:, 1] + lum_data[:, 2]), alpha=0.2)
